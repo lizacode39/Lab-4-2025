@@ -110,32 +110,66 @@ public class Main {
             System.err.println("Ошибка при работе с бинарным файлом логарифма: " + e.getMessage());
         }
 
-        // 6. Сериализация
-        System.out.println("\nСериализация ArrayTabulatedFunction");
-        TabulatedFunction serializableFunc = new ArrayTabulatedFunction(0, 10, 5);
+        // 6. Сериализация через Externalizable
+        System.out.println("\nТест сериализации через Externalizable");
 
-        String serialFile = "serialized_func.ser";
+        TabulatedFunction externalFunc = new LinkedListTabulatedFunction(0, 10, 5); // Используем LinkedListTabulatedFunction
+        System.out.println("Оригинальная функция до сериализации:");
+        printFunctionPoints(externalFunc);
+
+        String externalFile = "external_func.ser";
         try {
             // Сериализация
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(serialFile))) {
-                oos.writeObject(serializableFunc);
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(externalFile))) {
+                oos.writeObject(externalFunc);
             }
 
             // Десериализация
-            TabulatedFunction loadedFunc;
-            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(serialFile))) {
-                loadedFunc = (TabulatedFunction) ois.readObject();
+            TabulatedFunction loadedExternal;
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(externalFile))) {
+                loadedExternal = (TabulatedFunction) ois.readObject();
             }
 
-            System.out.println("Сериализация и десериализация ArrayTabulatedFunction успешна:");
-            printFunctionPoints(loadedFunc);
+            System.out.println("Функция после десериализации через Externalizable:");
+            printFunctionPoints(loadedExternal);
+
+            System.out.println("Тест Externalizable прошёл успешно!");
 
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Ошибка при сериализации: " + e.getMessage());
+            System.err.println("Ошибка при Externalizable: " + e.getMessage());
+        }
+
+        // 7. Сериализация через Externalizable (ArrayTabulatedFunction)
+        System.out.println("\nТест сериализации через Externalizable (ArrayTabulatedFunction)");
+
+        TabulatedFunction arrayFunc = new ArrayTabulatedFunction(0, 10, 5);
+        System.out.println("Оригинальная функция до сериализации:");
+        printFunctionPoints(arrayFunc);
+
+        String arrayFile = "array_external_func.ser";
+        try {
+            // Сериализация
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(arrayFile))) {
+                oos.writeObject(arrayFunc);
+            }
+
+            // Десериализация
+            TabulatedFunction loadedArray;
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(arrayFile))) {
+                loadedArray = (TabulatedFunction) ois.readObject();
+            }
+
+            System.out.println("Функция после десериализации через Externalizable (ArrayTabulatedFunction):");
+            printFunctionPoints(loadedArray);
+
+            System.out.println("Тест Externalizable (ArrayTabulatedFunction) прошёл успешно!");
+
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Ошибка при Externalizable (ArrayTabulatedFunction): " + e.getMessage());
         }
     }
 
-    //Вспомогательный метод для печати точек табулированной функции
+    // Вспомогательный метод для печати точек табулированной функции
     private static void printFunctionPoints(TabulatedFunction func) {
         System.out.printf("%-15s %-15s%n", "X", "Y");
         System.out.println("--------------------------------------------------");

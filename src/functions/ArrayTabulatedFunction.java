@@ -1,10 +1,17 @@
 package functions;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
-public class ArrayTabulatedFunction implements TabulatedFunction, Serializable {
+public class ArrayTabulatedFunction implements TabulatedFunction, java.io.Externalizable {
     private FunctionPoint[] points;
     private int pointsCount;
+
+    public ArrayTabulatedFunction() {
+        this.points = null;
+        this.pointsCount = 0;
+    }
 
     public ArrayTabulatedFunction(double leftX, double rightX, int pointsCount) throws IllegalArgumentException {
         if (leftX >= rightX)
@@ -28,12 +35,16 @@ public class ArrayTabulatedFunction implements TabulatedFunction, Serializable {
     public ArrayTabulatedFunction(FunctionPoint[] points) throws IllegalArgumentException {
         if (points.length < 2)
             throw new IllegalArgumentException(" Number of points is two");
-        for (int i = 0; i < points.length - 1; ++i)
-            if (points[i].getX() >= points[i + 1].getX())
+        for (int i = 0; i < points.length - 1; ++i) {
+            if (Double.compare(points[i].getX(), points[i + 1].getX()) >= 0) {
                 throw new IllegalArgumentException(" Invalid X value");
-        pointsCount = points.length;
+            }
+        }
+        this.pointsCount = points.length;
         this.points = new FunctionPoint[pointsCount];
-        System.arraycopy(points, 0, this.points, 0, pointsCount);
+        for (int i = 0; i < pointsCount; i++) {
+            this.points[i] = new FunctionPoint(points[i].getX(), points[i].getY());
+        }
     }
 
     public double getLeftDomainBorder() {
@@ -64,7 +75,7 @@ public class ArrayTabulatedFunction implements TabulatedFunction, Serializable {
     public FunctionPoint getPoint(int index) throws FunctionPointIndexOutOfBoundsException {
         if (index < 0 || index >= pointsCount)
             throw new FunctionPointIndexOutOfBoundsException(index);
-        return points[index];
+        return new FunctionPoint(points[index].getX(), points[index].getY()); // Возвращаем копию
     }
 
     public void setPoint(int index, FunctionPoint point)
@@ -104,8 +115,10 @@ public class ArrayTabulatedFunction implements TabulatedFunction, Serializable {
             throw new FunctionPointIndexOutOfBoundsException(index);
         if (pointsCount < 3)
             throw new IllegalStateException(" Number of points is two");
-        for (int i = index; i < pointsCount; ++i)
-            points[i] = pointsCount == (i + 1) ? null : points[i + 1];
+        for (int i = index; i < pointsCount - 1; ++i) {
+            points[i] = points[i + 1];
+        }
+        points[pointsCount - 1] = null;
         --pointsCount;
     }
 
@@ -120,9 +133,28 @@ public class ArrayTabulatedFunction implements TabulatedFunction, Serializable {
             System.arraycopy(points, 0, newpoints, 0, pointsCount);
             points = newpoints;
         }
-        for (int q = pointsCount; i <= (q - 1); --q)
+        for (int q = pointsCount; q > i; --q) {
             points[q] = points[q - 1];
+        }
         points[i] = point;
         ++pointsCount;
+    }
+
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeInt(pointsCount);
+        for (int i = 0; i < pointsCount; i++) {
+            out.writeDouble(points[i].getX());
+            out.writeDouble(points[i].getY());
+        }
+    }
+
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        pointsCount = in.readInt();
+        points = new FunctionPoint[pointsCount];
+        for (int i = 0; i < pointsCount; i++) {
+            double x = in.readDouble();
+            double y = in.readDouble();
+            points[i] = new FunctionPoint(x, y);
+        }
     }
 }
